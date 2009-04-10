@@ -34,5 +34,10 @@ class TestGeneratedSite < Test::Unit::TestCase
     should "not copy _posts directory" do
       assert !File.exist?(dest_dir('_posts'))
     end
+    
+    should "translate wiki link" do
+      page = File.read(dest_dir('2009/04/09/wikilink.html'))
+      assert page.include?("<a href='ThisIs.html'>ThisIs</a>")
+    end
   end
 end

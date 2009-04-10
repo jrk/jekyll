@@ -1,0 +1,6 @@
+---
+layout: wikilink
+title: Wiki links in Markdown
+---
+
+## [[ThisIs]] a wiki link block ##

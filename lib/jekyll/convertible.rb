@@ -29,6 +29,9 @@ module Jekyll
     #
     # Returns nothing
     def transform
+      # TODO jrk Replace this with a search over site posts for greedy name matches
+      # otherwise highlight red/? and print/log the error during generation
+      self.content = self.content.gsub(/\[\[(\w+)\]\]/,'[\1](\1.html)')
       case self.content_type
       when 'textile'
         self.ext = ".html"
