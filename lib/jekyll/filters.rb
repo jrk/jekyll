@@ -38,6 +38,14 @@ module Jekyll
         "#{array[0...-1].join(', ')}, #{connector} #{array[-1]}"
       end
     end
+    
+    #def wikilink(input)
+    #  # Support simple [[bracketed]] wiki-links
+    #  # via sinatra_wiki's Page::html method
+    #  input.gsub(/\[\[(\w+)\]\]/,'[\1](\1)')
+    #  #print input
+    #  # Support plain (non-bracketed) wiki-words: .gsub(/([A-Z]+)([a-z]+)([A-Z]+)\w+/,'<a href="\0">\0</a>')
+    #end
 
   end
 end

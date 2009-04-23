@@ -37,5 +37,9 @@ class TestFilters < Test::Unit::TestCase
       assert_equal "AT&amp;T", @filter.xml_escape("AT&T")
       assert_equal "&lt;code&gt;command &amp;lt;filename&amp;gt;&lt;/code&gt;", @filter.xml_escape("<code>command &lt;filename&gt;</code>")
     end
+    
+    #should "wikilink with simple string" do
+    #  assert_equal '[AbcDef](AbcDef)', @filter.wikilink("[[AbcDef]]")
+    #end
   end
 end
