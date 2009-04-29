@@ -66,10 +66,12 @@ module Jekyll
     config_file = File.join(source, '_config.yml')
     begin
       config = YAML.load_file(config_file)
+      if config.class != Hash then throw "failed to parse #{config_file}" end
       puts "Configuration from #{config_file}"
     rescue => err
       puts "WARNING: Could not read configuration. Using defaults (and options)."
       puts "\t" + err
+      config = {}
     end
 
     # Merge DEFAULTS < _config.yml < override
