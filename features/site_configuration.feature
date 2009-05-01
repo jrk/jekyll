@@ -18,6 +18,29 @@ Feature: Site configuration
     Then the _mysite directory should exist
     And I should see "Changing destination directory" in "_mysite/index.html"
 
+  Scenario: Exclude files inline
+    Given I have an "Rakefile" file that contains "I want to be excluded"
+    And I have an "README" file that contains "I want to be excluded"
+    And I have an "index.html" file that contains "I want to be included"
+    And I have a configuration file with "exclude" set to "Rakefile", "README"
+    When I run jekyll
+    Then I should see "I want to be included" in "_site/index.html"
+    And the "_site/Rakefile" file should not exist
+    And the "_site/README" file should not exist
+
+  Scenario: Exclude files with YAML array
+    Given I have an "Rakefile" file that contains "I want to be excluded"
+    And I have an "README" file that contains "I want to be excluded"
+    And I have an "index.html" file that contains "I want to be included"
+    And I have a configuration file with "exclude" set to:
+      | Value    |
+      | README   |
+      | Rakefile |
+    When I run jekyll
+    Then I should see "I want to be included" in "_site/index.html"
+    And the "_site/Rakefile" file should not exist
+    And the "_site/README" file should not exist
+
   Scenario: Use RDiscount for markup
     Given I have an "index.markdown" page that contains "[Google](http://google.com)"
     And I have a configuration file with "markdown" set to "rdiscount"
@@ -31,26 +54,6 @@ Feature: Site configuration
     When I run jekyll
     Then the _site directory should exist
     And I should see "<a href='http://google.com'>Google</a>" in "_site/index.html"
-
-  Scenario: Use none permalink schema
-    Given I have a _posts directory
-    And I have the following post:
-      | title                 | date      | content          |
-      | None Permalink Schema | 3/27/2009 | Totally nothing. |
-    And I have a configuration file with "permalink" set to "none"
-    When I run jekyll
-    Then the _site directory should exist
-    And I should see "Totally nothing." in "_site/none-permalink-schema.html"
-
-  Scenario: Use pretty permalink schema
-    Given I have a _posts directory
-    And I have the following post:
-      | title                   | date      | content            |
-      | Pretty Permalink Schema | 3/27/2009 | Totally wordpress. |
-    And I have a configuration file with "permalink" set to "pretty"
-    When I run jekyll
-    Then the _site directory should exist
-    And I should see "Totally wordpress." in "_site/2009/03/27/pretty-permalink-schema/index.html"
 
   Scenario: Highlight code with pygments
     Given I have an "index.html" file that contains "{% highlight ruby %} puts 'Hello world!' {% endhighlight %}"
