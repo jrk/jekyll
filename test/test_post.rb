@@ -109,7 +109,7 @@ class TestPost < Test::Unit::TestCase
           end
         end
 
-        context "with unspecified (date) style and categories" do
+        context "with unspecified (date) style and categories (in specified order)" do
           setup do
             @post.categories << "food"
             @post.categories << "beer"
@@ -118,7 +118,7 @@ class TestPost < Test::Unit::TestCase
 
           should "process the url correctly" do
             assert_equal "/:categories/:year/:month/:day/:title.html", @post.template
-            assert_equal "/beer/food/2008/10/19/foo-bar.html", @post.url
+            assert_equal "/food/beer/2008/10/19/foo-bar.html", @post.url
           end
         end
 
