@@ -10,6 +10,7 @@ h2. Getting Started
 * Read up about its "Usage":http://wiki.github.com/mojombo/jekyll/usage and "Configuration":http://wiki.github.com/mojombo/jekyll/configuration
 * Take a gander at some existing "Sites":http://wiki.github.com/mojombo/jekyll/sites
 * Fork and "Contribute":http://wiki.github.com/mojombo/jekyll/contribute your own modifications
+* Have questions? Post them on the "Mailing List":http://groups.google.com/group/jekyll-rb
 
 h2. Diving In
 
@@ -18,6 +19,15 @@ h2. Diving In
 * Put information on your site with "Template Data":http://wiki.github.com/mojombo/jekyll/template-data
 * Customize the "Permalinks":http://wiki.github.com/mojombo/jekyll/permalinks your posts are generated with
 * Use the built-in "Liquid Extensions":http://wiki.github.com/mojombo/jekyll/liquid-extensions to make your life easier
+
+h2. Dependencies
+
+* RedCloth: Textile support
+* Liquid: Templating system
+* Classifier: Generating related posts
+* Maruku: Default markdown engine
+* Directory Watcher: Auto-regeneration of sites
+* Open4: Talking to pygments for syntax highlighting
 
 h2. License
 

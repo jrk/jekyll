@@ -25,7 +25,6 @@ class TestPost < Test::Unit::TestCase
       assert !Post.valid?("blah")
     end
 
-
     context "processing posts" do
       setup do
         @post = Post.allocate
@@ -67,6 +66,19 @@ class TestPost < Test::Unit::TestCase
         assert_equal "my_category/permalinked-post", @post.permalink
         assert_equal "my_category", @post.dir
         assert_equal "my_category/permalinked-post", @post.url
+      end
+
+      context "with CRLF linebreaks" do
+        setup do
+          @real_file = "2009-05-24-yaml-linebreak.markdown"
+          @source = source_dir('win/_posts')
+        end
+        should "read yaml front-matter" do
+          @post.read_yaml(@source, @real_file)
+
+          assert_equal({"title" => "Test title", "layout" => "post", "tag" => "Ruby"}, @post.data)
+          assert_equal "\r\nThis is the content", @post.content
+        end
       end
 
       context "with site wide permalink" do
@@ -129,8 +141,8 @@ class TestPost < Test::Unit::TestCase
           end
 
           should "process the url correctly" do
-            assert_equal "/:categories/:year/:month/:day/:title", @post.template
-            assert_equal "/2008/10/19/foo-bar", @post.url
+            assert_equal "/:categories/:year/:month/:day/:title/", @post.template
+            assert_equal "/2008/10/19/foo-bar/", @post.url
           end
         end
 
@@ -212,6 +224,28 @@ class TestPost < Test::Unit::TestCase
         assert post.categories.include?('baz')
       end
 
+      should "recognize tag in yaml" do
+        post = setup_post("2009-05-18-tag.textile")
+        assert post.tags.include?('code')
+      end
+
+      should "recognize tags in yaml" do
+        post = setup_post("2009-05-18-tags.textile")
+        assert post.tags.include?('food')
+        assert post.tags.include?('cooking')
+        assert post.tags.include?('pizza')
+      end
+      
+      should "allow no yaml" do
+        post = setup_post("2009-06-22-no-yaml.textile")
+        assert_equal "No YAML.", post.content
+      end
+
+      should "allow empty yaml" do
+        post = setup_post("2009-06-22-empty-yaml.textile")
+        assert_equal "Empty YAML.", post.content
+      end
+
       context "rendering" do
         setup do
           clear_dest
@@ -262,7 +296,6 @@ class TestPost < Test::Unit::TestCase
     should "generate categories and topics" do
       post = Post.new(@site, File.join(File.dirname(__FILE__), *%w[source]), 'foo', 'bar/2008-12-12-topical-post.textile')
       assert_equal ['foo'], post.categories
-      assert_equal ['bar'], post.topics
     end
 
   end

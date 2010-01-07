@@ -17,11 +17,8 @@ class TestGeneratedSite < Test::Unit::TestCase
       assert @index.include?("#{@site.posts.size} Posts")
     end
 
-    should "render post.content" do
-      latest_post = Dir[source_dir('_posts', '*')].sort.last
-      post = Post.new(@site, source_dir, '', File.basename(latest_post))
-      post.transform
-      assert @index.include?(post.content)
+    should "render latest post's content" do
+      assert @index.include?(@site.posts.last.content)
     end
 
     should "hide unpublished posts" do
@@ -33,6 +30,11 @@ class TestGeneratedSite < Test::Unit::TestCase
 
     should "not copy _posts directory" do
       assert !File.exist?(dest_dir('_posts'))
+    end
+
+    should "process other static files and generate correct permalinks" do
+      assert File.exists?(dest_dir('/about/index.html'))
+      assert File.exists?(dest_dir('/contacts.html'))
     end
   end
 end

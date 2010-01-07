@@ -1,8 +1,8 @@
 module Jekyll
 
   class Site
-    attr_accessor :config, :layouts, :posts, :categories, :exclude
-    attr_accessor :source, :dest, :lsi, :pygments, :permalink_style
+    attr_accessor :config, :layouts, :posts, :categories, :exclude,
+                  :source, :dest, :lsi, :pygments, :permalink_style, :tags
 
     # Initialize the site
     #   +config+ is a Hash containing site configurations details
@@ -25,7 +25,8 @@ module Jekyll
     def reset
       self.layouts         = {}
       self.posts           = []
-      self.categories      = Hash.new { |hash, key| hash[key] = Array.new }
+      self.categories      = Hash.new { |hash, key| hash[key] = [] }
+      self.tags            = Hash.new { |hash, key| hash[key] = [] }
     end
 
     def setup
@@ -76,6 +77,8 @@ module Jekyll
           rescue LoadError
             puts "The maruku gem is required for markdown support!"
           end
+        else
+          raise "Invalid Markdown processor: '#{self.config['markdown']}' -- did you mean 'maruku' or 'rdiscount'?"
       end
     end
 
@@ -126,6 +129,7 @@ module Jekyll
           if post.published
             self.posts << post
             post.categories.each { |c| self.categories[c] << post }
+            post.tags.each { |c| self.tags[c] << post }
           end
         end
       end
@@ -137,7 +141,8 @@ module Jekyll
         post.render(self.layouts, site_payload)
       end
 
-      self.categories.values.map { |cats| cats.sort! { |a, b| b <=> a} }
+      self.categories.values.map { |ps| ps.sort! { |a, b| b <=> a} }
+      self.tags.values.map { |ps| ps.sort! { |a, b| b <=> a} }
     rescue Errno::ENOENT => e
       # ignore missing layout dir
     end
@@ -164,7 +169,7 @@ module Jekyll
       base = File.join(self.source, dir)
       entries = filter_entries(Dir.entries(base))
       directories = entries.select { |e| File.directory?(File.join(base, e)) }
-      files = entries.reject { |e| File.directory?(File.join(base, e)) }
+      files = entries.reject { |e| File.directory?(File.join(base, e)) || File.symlink?(File.join(base, e)) }
 
       # we need to make sure to process _posts *first* otherwise they
       # might not be available yet to other templates as {{ site.posts }}
@@ -172,14 +177,16 @@ module Jekyll
         directories.delete('_posts')
         read_posts(dir)
       end
+
       [directories, files].each do |entries|
         entries.each do |f|
           if File.directory?(File.join(base, f))
             next if self.dest.sub(/\/$/, '') == File.join(base, f)
             transform_pages(File.join(dir, f))
+          elsif Pager.pagination_enabled?(self.config, f)
+            paginate_posts(f, dir)
           else
             first3 = File.open(File.join(self.source, dir, f)) { |fd| fd.read(3) }
-
             if first3 == "---"
               # file appears to have a YAML header so process it as a page
               page = Page.new(self, self.source, dir, f)
@@ -211,15 +218,13 @@ module Jekyll
     #
     # Returns {"site" => {"time" => <Time>,
     #                     "posts" => [<Post>],
-    #                     "categories" => [<Post>],
-    #                     "topics" => [<Post>] }}
+    #                     "categories" => [<Post>]}
     def site_payload
-      {"site" => {
-        "time" => Time.now,
-        "posts" => self.posts.sort { |a,b| b <=> a },
-        "categories" => post_attr_hash('categories'),
-        "topics" => post_attr_hash('topics')
-      }}
+      {"site" => self.config.merge({
+          "time"       => Time.now,
+          "posts"      => self.posts.sort { |a,b| b <=> a },
+          "categories" => post_attr_hash('categories'),
+          "tags"       => post_attr_hash('tags')})}
     end
 
     # Filter out any files/directories that are hidden or backup files (start
@@ -231,6 +236,29 @@ module Jekyll
         unless ['_posts', '.htaccess'].include?(e)
           ['.', '_', '#'].include?(e[0..0]) || e[-1..-1] == '~' || self.exclude.include?(e)
         end
+      end
+    end
+
+    # Paginates the blog's posts. Renders the index.html file into paginated directories, ie: page2, page3...
+    # and adds more wite-wide data
+    #
+    # {"paginator" => { "page" => <Number>,
+    #                   "per_page" => <Number>,
+    #                   "posts" => [<Post>],
+    #                   "total_posts" => <Number>,
+    #                   "total_pages" => <Number>,
+    #                   "previous_page" => <Number>,
+    #                   "next_page" => <Number> }}
+    def paginate_posts(file, dir)
+      all_posts = self.posts.sort { |a,b| b <=> a }
+      pages = Pager.calculate_pages(all_posts, self.config['paginate'].to_i)
+      pages += 1
+      (1..pages).each do |num_page|
+        pager = Pager.new(self.config, num_page, all_posts, pages)
+        page = Page.new(self, self.source, dir, file)
+        page.render(self.layouts, site_payload.merge({'paginator' => pager.to_hash}))
+        suffix = "page#{num_page}" if num_page > 1
+        page.write(self.dest, suffix)
       end
     end
   end
